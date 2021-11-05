@@ -1,0 +1,21 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t maa5iv/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true maa5iv/react-test npm test
+
+after_success:
+  - docker build -t maa5iv/multi-client ./client
+  - docker build -t maa5iv/multi-nginx ./nginx
+  - docker build -t maa5iv/multi-server ./server
+  - docker build -t maa5iv/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push maa5iv/multi-client
+  - docker push maa5iv/multi-nginx
+  - docker push maa5iv/multi-server
+  - docker push maa5iv/multi-worker
